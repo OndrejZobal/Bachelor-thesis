@@ -1,0 +1,241 @@
+% This file should be replaced with your file with an appendices (headings below are examples only)
+
+% For compilation piecewise (see projekt.tex), it is necessary to uncomment it and change
+%\documentclass[../projekt.tex]{subfiles}
+%\begin{document}
+
+% Placing of table of contents of the memory media here should be consulted with a supervisor
+\chapter{Contents of the included storage media}
+
+\begin{lstlisting}[numbers=none]
+dataset/
+        custom-error-dataset-source-links.txt
+        README.txt
+evaluation/
+        README.txt
+        report-CodeImprove-comment.jsonl.gz
+        report-CodeImprove-docstring.jsonl.gz
+        report-CodeImprove-rename.jsonl.gz
+source/
+        CodeImprove Extension/
+                ^\textit{Source files of the extension...}^
+        anotate.py
+        config.toml
+        convert_bart_to_led.py
+        convert_to_peft.py
+        dataset_formators.py
+        eval.py
+        extract-git-fixes.py
+        gpt-eval.py
+        heuristic.py
+        measure.py
+        my_data.py
+        my_params.py
+        plbart_preprocess_fn.py
+        preprocess_for_plbart.py
+        requirements.txt
+        server.py
+        train.py
+        README.txt
+documentation/
+        ^\textit{LaTeX source files of the thesis...}^
+thesis.pdf
+thesis-print.pdf
+\end{lstlisting}
+
+%\chapter{Manual}
+
+%\chapter{Configuration file}
+
+%\chapter{Scheme of RelaxNG configuration file}
+
+%\chapter{Poster}
+\chapter{Model predictions}
+\section{Docstring predictions} \label{docstr_pred}
+    
+\subsection{Example 1}
+
+    \begin{lstlisting}[language=Python, caption={Input code}]
+def to_keypoints ( self ) : 
+    from imgaug. augmentables. kps import Keypoint 
+    return [ Keypoint ( x = self. x1, y = self. y1 ), Keypoint ( x = self. x2, y = self. y1 ), Keypoint ( x = self. x2, y = self. y2 ), Keypoint ( x = self. x1, y = self. y2 ) ] 
+    \end{lstlisting}
+    \begin{lstlisting}[caption={Label}]
+Convert the corners of the bounding box to keypoints (clockwise, starting at top left).
+
+Returns
+-------
+list of imgaug.Keypoint
+Corners of the bounding box as keypoints.
+    \end{lstlisting}
+    \begin{lstlisting}[caption={Prediction}]
+Converts a list of Keypoints to a Keypoint object.
+    \end{lstlisting}
+
+\subsection{Example 2}
+
+    \begin{lstlisting}[language=Python, caption={Input code}]
+def heron_class ( class_name, lib_jars, extra_jars = None, args = None, java_defines = None ) : 
+    if extra_jars is None : 
+        extra_jars = [ ] 
+    if args is None : 
+        args = [ ] 
+    if java_defines is None : 
+        java_defines = [ ] 
+    java_opts = [ '-D' + opt for opt in java_defines ] 
+    all_args = [ config. get_java_path ( ), "-client", "-Xmx1g" ] + java_opts + [ "-cp", config. get_classpath ( extra_jars + lib_jars ) ] 
+    all_args += [ class_name ] + list ( args ) 
+    heron_env = os. environ. copy ( ) 
+    heron_env [ 'HERON_OPTIONS' ] = opts. get_heron_config ( ) 
+    Log. debug ( "Invoking class using command: ``%s''",''. join ( all_args ) ) 
+    Log. debug ( "Heron options: {%s}", str ( heron_env [ "HERON_OPTIONS" ] ) ) 
+    process = subprocess. Popen ( all_args, env = heron_env, stdout = subprocess. PIPE, stderr = subprocess. PIPE, bufsize = 1 ) 
+    # stdout message has the information Java program sends back 
+    # stderr message has extra information, such as debugging message 
+    return ProcessResult ( process ) 
+    \end{lstlisting}
+    \begin{lstlisting}[caption={Label}]
+Execute a heron class given the args and the jars needed for class 
+:param class_name:
+:param lib_jars:
+:param extra_jars:
+:param args:
+:param java_defines:
+:return:
+    \end{lstlisting}
+    \begin{lstlisting}[caption={Prediction}]
+Invoking a class.
+:param class_name: The name of the class to be invoked. :param lib_jars: A list of jars to be executed. If not specified, the classpath will be used. If the classpath is not provided, it will be ignored. If no classpath is provided, the class will be returned. If it is not found in the classpath, it is ignored.
+    \end{lstlisting}
+
+\section{Comment prediction}
+\label{comment_pred}
+\subsection{Example 1}
+    \begin{lstlisting}[language=Python, caption={Input code}]
+def exit_tensorflow ( sess = None, port = 6006 ) : 
+    text = "[TL] Close tensorboard and nvidia-process if available" 
+    text2 = "[TL] Close tensorboard and nvidia-process not yet supported by this function (tl.ops.exit_tf) on " 
+    if sess is not None : 
+        sess. close ( ) 
+    if _platform == "linux" or _platform == "linux2" : 
+        tl. logging. info ( 'linux: %s' % text ) 
+        os. system ( 'nvidia-smi' ) 
+        os. system ( 'fuser'+ port + '/tcp -k' ) 
+ 
+        # PREDICT THIS COMMENT
+        os. system ( "nvidia-smi | grep python |awk '{print $3}'|xargs kill" ) 
+ 
+        _exit ( ) 
+    elif _platform == "darwin" : 
+        tl. logging. info ( 'OS X: %s' % text ) 
+        subprocess. Popen ( "lsof -i tcp:" + str ( port ) + " | grep -v PID | awk '{print $2}' | xargs kill", shell = True ) 
+ 
+    elif _platform == "win32" : 
+        raise NotImplementedError ( "this function is not supported on the Windows platform" ) 
+    else : 
+        tl. logging. info ( text2 + _platform ) 
+    \end{lstlisting}
+    
+    \begin{lstlisting}[caption={Label}]
+kill all nvidia-smi python process
+    \end{lstlisting}
+    \begin{lstlisting}[caption={Prediction}]
+kill the tensorboard
+    \end{lstlisting}
+
+
+\subsection{Example 2}
+    \begin{lstlisting}[language=Python, caption={Input code}]
+def _add_notice_to_docstring ( doc, no_doc_str, notice ) : 
+    if not doc : 
+        lines = [ no_doc_str ] 
+    else : 
+        lines = _normalize_docstring ( doc ). splitlines ( ) 
+    notice = [ '' ] + notice 
+    if len ( lines ) > 1 : 
+        # PREDICT THIS COMMENT
+        if lines [ 1 ]. strip ( ) : 
+            notice. append ( '' ) 
+        lines [ 1 : 1 ] = notice 
+    else : 
+        lines += notice 
+    return'\n '. join ( lines ) 
+    \end{lstlisting}
+    
+    \begin{lstlisting}[caption={Label}]
+Make sure that we keep our distance from the main body
+    \end{lstlisting}
+    \begin{lstlisting}[caption={Prediction}]
+if no_doc_str in doc:
+    \end{lstlisting}
+
+\section{Variable name predictions} \label{rename_pred}
+    
+\subsection{Example 1}
+    \begin{lstlisting}[language=Python, caption={Input code}]
+def encode_observation ( ob_space, <mask> ) : 
+    if isinstance ( ob_space, Discrete ) : 
+        return tf. to_float ( tf. one_hot (<mask>, ob_space. n ) ) 
+    elif isinstance ( ob_space, Box ) : 
+        return tf. to_float (<mask> ) 
+    elif isinstance ( ob_space, MultiDiscrete ) : 
+        <mask> = tf. cast (<mask>, tf. int32 ) 
+        one_hots = [ tf. to_float ( tf. one_hot (<mask> [..., i ], ob_space. nvec [ i ] ) ) for i in range (<mask>. shape [ - 1 ] ) ] 
+        return tf. concat ( one_hots, axis = - 1 ) 
+    else : 
+        raise NotImplementedError 
+    \end{lstlisting}
+    \begin{lstlisting}[caption={Label}]
+placeholder
+    \end{lstlisting}
+    \begin{lstlisting}[caption={Top 3 predictions}]
+ob_space_tensor, observed_observation, observation_space
+    \end{lstlisting}
+    
+\subsection{Example 2}
+    \begin{lstlisting}[language=Python, caption={Input code}]
+def encode_observation ( ob_space, <mask> ) : 
+    if isinstance ( ob_space, Discrete ) : 
+        return tf. to_float ( tf. one_hot (<mask>, ob_space. n ) ) 
+    elif isinstance ( ob_space, Box ) : 
+        return tf. to_float (<mask> ) 
+    elif isinstance ( ob_space, MultiDiscrete ) : 
+        <mask> = tf. cast (<mask>, tf. int32 ) 
+        one_hots = [ tf. to_float ( tf. one_hot (<mask> [..., i ], ob_space. nvec [ i ] ) ) for i in range (<mask>. shape [ - 1 ] ) ] 
+        return tf. concat ( one_hots, axis = - 1 ) 
+    else : 
+        raise NotImplementedError 
+    \end{lstlisting}
+    \begin{lstlisting}[caption={Label}]
+shape_resized
+    \end{lstlisting}
+    \begin{lstlisting}[caption={Top 3 predictions}]
+resampled_resized, resized_shape, resampledensities
+    \end{lstlisting}
+    
+\subsection{Example 3}
+    \begin{lstlisting}[language=Python, caption={Input code}]
+def batch_with_dynamic_pad ( images_and_captions, batch_size, queue_capacity, add_summaries = True ) : 
+    enqueue_list = [ ] 
+    for image, caption in images_and_captions : 
+        caption_length = tf. shape ( caption ) [ 0 ] 
+        input_length = tf. expand_dims ( tf. subtract ( caption_length, 1 ), 0 ) 
+        <mask> = tf. slice ( caption, [ 0 ], input_length ) 
+        target_seq = tf. slice ( caption, [ 1 ], input_length ) 
+        indicator = tf. ones ( input_length, dtype = tf. int32 ) 
+        enqueue_list. append ( [ image,<mask>, target_seq, indicator ] ) 
+    images, input_seqs, target_seqs, mask = tf. train. batch_join ( enqueue_list, batch_size = batch_size, capacity = queue_capacity, dynamic_pad = True, name = 'batch_and_pad' ) 
+    if add_summaries : 
+        lengths = tf. add ( tf. reduce_sum ( mask, 1 ), 1 ) 
+        tf. summary. scalar ( 'caption_length/batch_min', tf. reduce_min ( lengths ) ) 
+        tf. summary. scalar ( 'caption_length/batch_max', tf. reduce_max ( lengths ) ) 
+        tf. summary. scalar ( 'caption_length/batch_mean', tf. reduce_mean ( lengths ) ) 
+    return images, input_seqs, target_seqs, mask 
+
+    \end{lstlisting}
+    \begin{lstlisting}[caption={Label}]
+input_seq
+    \end{lstlisting}
+    \begin{lstlisting}[caption={Top 3 predictions}]
+batched_length, image2_label, input_length
+    \end{lstlisting}

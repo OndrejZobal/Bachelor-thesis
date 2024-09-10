@@ -1,0 +1,11 @@
+transformers
+SentencePiece
+toml
+torch
+accelerate
+astor
+peft
+datasets
+bitsandbytes
+openai
+aiohttp

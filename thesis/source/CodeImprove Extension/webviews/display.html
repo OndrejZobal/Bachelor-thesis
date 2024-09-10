@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Inspector</title>
+        <link href="{{prismCssUri}}" rel="stylesheet" />
+        <link href="{{vscodeCssUri}}" rel="stylesheet" />
+    </head>
+    <body>
+        <h1 id="mainHeading"></h1>
+        <p id="description"></p>
+        <div id="docstringPicker" style="display:none">
+            <button class="docstringPickerBtn segmented-btn" code="NA">No particular formatting</button>
+            <button class="docstringPickerBtn segmented-btn" code="GO">Google style</button>
+            <button class="docstringPickerBtn segmented-btn" code="NP">Numpy style</button>
+            <button class="docstringPickerBtn segmented-btn" code="RE">reST</button>
+        </div>
+
+        <div id="codeview" style="display:none">
+            <pre data-line="{{highlights}}" ><code class="lang-py">{{data}}</code></pre>
+        </div>
+
+        <div id="renamePicker" style="display:none">
+            <br>
+            <button class="renamePickerBtn segmented-btn" orderNo="0"></button>
+            <button class="renamePickerBtn segmented-btn" orderNo="1"></button>
+            <button class="renamePickerBtn segmented-btn" orderNo="2"></button>
+        </div>
+        <div style="display:flex">
+            <button id="acceptButton" width="50%">Accept</button>
+            <button id="cancelButton" width="50%">Cancel</button>
+        </div>
+
+        <script>
+            let docstring_style = "{{docstring_style}}"
+            const vscode = acquireVsCodeApi();
+
+            const heading = document.getElementById("mainHeading");
+            const description = document.getElementById("description");
+            if ('{{type}}' === 'comment') {
+                heading.innerHTML = "Comment Suggestions";
+                description.innerHTML = "Suggestions for more comments in your code:";
+            }
+            else if ('{{type}}' === 'rename') {
+                heading.innerHTML = "Suggest a Name";
+                description.innerHTML = "Suggestions for renaming <code>{{rename_variable}}</code>:";
+            }
+            else if ('{{type}}' === 'error') {
+                heading.innerHTML = "Bug Fix Suggestions";
+                description.innerHTML = "Suggestions for refining your code:";
+            }
+
+            if ('{{type}}' !== 'rename') {
+                document.getElementById('acceptButton').addEventListener('click', () => {
+                    vscode.postMessage({
+                        command: 'accept',
+                    });
+                });
+            }
+            else {
+                document.getElementById('acceptButton').style.display = 'none';
+            }
+            document.getElementById('cancelButton').addEventListener('click', () => {
+                vscode.postMessage({
+                    command: 'close',
+                });
+            });
+
+            document.addEventListener('DOMContentLoaded', function() {
+                // Comments
+                if ('{{type}}' === 'comment' || '{{type}}' === 'error') {
+                    const codeView = document.getElementById('codeview');
+                    codeView.style.display = "flex";
+                }
+
+                if ('{{type}}' === 'comment') {
+                    const buttonsContainerDocstring = document.getElementById('docstringPicker');
+                    buttonsContainerDocstring.style.display = "flex";
+                    const buttonsDocstring = Array.from(buttonsContainerDocstring.getElementsByClassName('docstringPickerBtn'));
+
+                    buttonsDocstring.forEach(button => {
+                        if (button.getAttribute('code') === docstring_style) {
+                            console.log("setting button", button.getAttribute('code'));
+                            button.setAttribute('data-active', 'true');
+                        }
+                    });
+
+                    buttonsContainerDocstring.addEventListener('click', function(e) {
+                        console.warn("clicked");
+                        // Check if the clicked element is a button
+                        if (e.target && e.target.nodeName === 'BUTTON') {
+                            // Loop through all buttons and remove the active attribute
+                            for (let btn of buttonsDocstring) {
+                                btn.removeAttribute('data-active');
+                            }
+                            // Set the clicked button as active
+                            e.target.setAttribute('data-active', 'true');
+
+                            const code = e.target.getAttribute('code');
+
+                            vscode.postMessage({
+                                command: 'change_docstring_style',
+                                style: code,
+                            });
+                        }
+                    });
+                }
+
+                // Rename
+                if ('{{type}}' === 'rename') {
+                    const buttonsContainerRename = document.getElementById('renamePicker');
+                    buttonsContainerRename.style.display = "block";
+                    const buttonsRename = Array.from(buttonsContainerRename.getElementsByClassName('renamePickerBtn'));
+                    const options = ["{{rename_option_1}}", "{{rename_option_2}}", "{{rename_option_3}}"];
+
+                    buttonsRename.forEach(button => {
+                        const code = button.getAttribute('orderNo');
+                        button.innerHTML = options[Number(code)];
+                    });
+
+                    buttonsContainerRename.addEventListener('click', function(e) {
+                        // Check if the clicked element is a button
+                        if (e.target && e.target.nodeName === 'BUTTON') {
+                            const code = e.target.getAttribute('orderNo');
+                            vscode.postMessage({
+                                command: 'choose_name',
+                                choice_index: code,
+                            });
+                        }
+                    });
+                }
+            });
+        </script>
+        <script src="{{prismJsUri}}"></script>
+    </body>
+</html>

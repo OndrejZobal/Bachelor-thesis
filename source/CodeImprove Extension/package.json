@@ -1,0 +1,43 @@
+{
+  "name": "codeimprove",
+  "displayName": "CodeImprove",
+  "description": "",
+  "version": "1.0.0",
+  "engines": {
+    "vscode": "^1.87.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onLanguage:python"
+  ],
+  "main": "./extension.js",
+
+  "contributes": {
+    "configuration": {
+      "title": "CodeImprove",
+      "properties": {
+        "codeimprove.serverAddress": {
+          "type": "string",
+          "default": "localhost:8182",
+          "description": "The address of the server that the extension should use. HTTP is used"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "watch": "nodemon --watch 'src/**/*.js' --exec 'echo Reminder: Reload VSCode Extension Host'"
+  },
+  "devDependencies": {
+    "@types/mocha": "^10.0.6",
+    "@types/node": "18.x",
+    "@types/vscode": "^1.87.0",
+    "@vscode/test-cli": "^0.0.8",
+    "@vscode/test-electron": "^2.3.9",
+    "eslint": "^8.57.0",
+    "node-fetch": "^3.3.2",
+    "typescript": "^5.3.3",
+    "uuid": "^9.0.1"
+  }
+}
